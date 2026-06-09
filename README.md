@@ -113,7 +113,7 @@ Backend berjalan di `http://localhost:3000`
 
 ### 4. Jalankan Simulator Wokwi
 - Buka [wokwi.com/projects/465145460461775873](https://wokwi.com/projects/465145460461775873)
-- Klik tombol **▶ Play**
+- Klik tombol **Play**
 - Tunggu Serial Monitor menampilkan `[MQTT] Connected!`
 
 ### 5. Buka Dashboard
