@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WeatherIoT — UAS IoT ESP32</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;min-height:100vh;background:#060d14;color:#fff;overflow-x:hidden}
+    .bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% -10%,#0d2137 0%,#060d14 70%)}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3;animation:orbFloat var(--dur,20s) ease-in-out infinite alternate var(--del,0s)}
+    @keyframes orbFloat{0%{transform:translate(0,0)}100%{transform:translate(var(--tx,40px),var(--ty,-30px))}}
+    .star2{position:absolute;background:#fff;border-radius:50%;animation:twk var(--d,3s) ease-in-out infinite var(--delay,0s)}
+    @keyframes twk{0%,100%{opacity:.1}50%{opacity:.8}}
+    .app{position:relative;z-index:1;min-height:100vh}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:100;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,13,20,.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav-brand{display:flex;align-items:center;gap:10px}
+    .nav-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#38bdf8,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px rgba(56,189,248,.3)}
+    .nav-name{font-size:16px;font-weight:800;letter-spacing:-.4px}
+    .nav-sub{font-size:10px;color:rgba(255,255,255,.35);font-weight:500;margin-top:1px;font-family:'JetBrains Mono',monospace}
+    .nav-right{display:flex;align-items:center;gap:8px}
+
+    /* STATUS BADGES */
+    .badge{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.08em}
+    .badge-live{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#4ade80}
+    .badge-offline{background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.25);color:#f87171}
+    .badge-manual{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:#fbbf24}
+    .dot-live{width:6px;height:6px;border-radius:50%;animation:pulseLive 1.8s ease-in-out infinite}
+    .dot-live.green{background:#4ade80}
+    .dot-live.red{background:#f87171}
+    .dot-live.yellow{background:#fbbf24}
+    @keyframes pulseLive{0%,100%{box-shadow:0 0 0 0 currentColor}50%{box-shadow:0 0 0 4px transparent}}
+    .btn-wokwi{display:flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;text-decoration:none;transition:.2s;font-family:'Inter',sans-serif}
+    .btn-wokwi:hover{background:rgba(255,255,255,.09);color:#fff}
+
+    /* CONNECTION BANNER */
+    .conn-banner{margin:16px 32px 0;padding:12px 18px;border-radius:14px;display:flex;align-items:center;gap:12px;font-size:12px}
+    .banner-live{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+    .banner-offline{background:rgba(255,100,100,.07);border:1px solid rgba(255,100,100,.2);color:#f87171}
+    .banner-icon{font-size:18px;flex-shrink:0}
+    .banner-text strong{font-weight:700}
+    .banner-text span{color:rgba(255,255,255,.45);margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:11px}
+
+    /* HERO */
+    .hero{padding:20px 32px 0;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+    @media(max-width:900px){.hero{grid-template-columns:1fr}}
+
+    /* MAIN WEATHER CARD */
+    .weather-card{border-radius:28px;padding:36px 36px 28px;position:relative;overflow:hidden;min-height:300px;transition:background 1s cubic-bezier(.4,0,.2,1)}
+    .wc-hot   {background:linear-gradient(145deg,#ea580c,#f97316,#fb923c,#fbbf24)}
+    .wc-normal{background:linear-gradient(145deg,#0369a1,#0284c7,#38bdf8,#7dd3fc)}
+    .wc-cold  {background:linear-gradient(145deg,#4f46e5,#6366f1,#818cf8,#a5b4fc)}
+    .wc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+    .wc-location{font-size:13px;font-weight:600;color:rgba(255,255,255,.8)}
+    .wc-time{font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.5);background:rgba(0,0,0,.2);padding:4px 10px;border-radius:20px}
+    .wc-main{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px}
+    .wc-temp{font-size:96px;font-weight:900;color:#fff;line-height:1;letter-spacing:-5px}
+    .wc-temp sup{font-size:32px;font-weight:500;vertical-align:super;letter-spacing:0}
+    .wc-label{font-size:26px;font-weight:800;color:rgba(255,255,255,.95);margin-top:6px}
+    .wc-desc{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+    .wc-emoji{font-size:96px;line-height:1;filter:drop-shadow(0 12px 30px rgba(0,0,0,.25));animation:floatIcon 4s ease-in-out infinite}
+    @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .led-indicator{display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 14px;background:rgba(0,0,0,.18);border-radius:20px;width:fit-content}
+    .led-bulb{width:12px;height:12px;border-radius:50%;transition:all .6s}
+    .led-on{background:#f87171;box-shadow:0 0 8px #f87171,0 0 20px rgba(248,113,113,.5)}
+    .led-off{background:rgba(255,255,255,.2)}
+    .led-text{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace}
+    .wc-footer{display:flex;gap:0;margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,.15)}
+    .wc-stat{flex:1;padding:0 16px;border-right:1px solid rgba(255,255,255,.12)}
+    .wc-stat:first-child{padding-left:0}
+    .wc-stat:last-child{border-right:none}
+    .wc-stat-lbl{font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+    .wc-stat-val{font-size:18px;font-weight:800;color:#fff;margin-top:2px}
+    .wc-stat-sub{font-size:10px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace}
+
+    /* RIGHT PANEL */
+    .right-col{display:flex;flex-direction:column;gap:16px}
+    .panel-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:22px}
+    .panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:16px}
+
+    /* SLIDER */
+    .input-row{margin-bottom:14px}
+    .input-row:last-of-type{margin-bottom:0}
+    .input-lbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .input-lbl-text{font-size:12px;color:rgba(255,255,255,.5);font-weight:600}
+    .input-lbl-val{font-size:18px;font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace}
+    input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:transparent;outline:none;cursor:pointer}
+    input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px}
+    input[type=range].temp-slider::-webkit-slider-runnable-track{background:linear-gradient(to right,#6366f1,#38bdf8,#f97316)}
+    input[type=range].hum-slider::-webkit-slider-runnable-track{background:linear-gradient(to right,#1d4ed8,#38bdf8)}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4);cursor:pointer;margin-top:-7px}
+    .manual-note{font-size:10px;color:rgba(255,255,255,.25);margin-top:10px;font-family:'JetBrains Mono',monospace;text-align:center}
+
+    /* LCD */
+    .lcd-screen{background:#0a1a0a;border-radius:10px;padding:14px 16px;border:2px solid #1a3a1a;box-shadow:inset 0 2px 8px rgba(0,0,0,.5),0 0 20px rgba(0,255,80,.05)}
+    .lcd-line{font-size:14px;font-family:'JetBrains Mono',monospace;color:#4eff91;letter-spacing:.12em;line-height:1.8;text-shadow:0 0 8px rgba(78,255,145,.4)}
+    .lcd-cursor{display:inline-block;width:9px;height:14px;background:#4eff91;margin-left:2px;animation:blink .8s step-end infinite;vertical-align:middle}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+    /* STATS */
+    .stats-section{padding:24px 32px 0}
+    .sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:14px}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    @media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    .scard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px 16px;transition:border-color .3s,transform .2s}
+    .scard:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px)}
+    .scard-icon{font-size:24px;margin-bottom:10px}
+    .scard-lbl{font-size:10px;color:rgba(255,255,255,.35);font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+    .scard-val{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-top:2px}
+    .scard-unit{font-size:12px;font-weight:400;color:rgba(255,255,255,.4)}
+    .scard-sub{font-size:10px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;margin-top:3px}
+
+    /* CHART */
+    .chart-section{padding:24px 32px 0}
+    .chart-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:20px}
+    .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .chart-title{font-size:14px;font-weight:700;color:#fff}
+    .chart-sub{font-size:11px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace}
+    .chart-wrap{position:relative;height:200px}
+
+    /* STATS SUMMARY */
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .summary-item{background:rgba(255,255,255,.03);border-radius:12px;padding:12px;text-align:center}
+    .summary-lbl{font-size:10px;color:rgba(255,255,255,.3);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+    .summary-val{font-size:20px;font-weight:800;color:#fff;margin-top:2px}
+    .summary-sub{font-size:10px;color:rgba(255,255,255,.25);margin-top:1px}
+
+    /* WOKWI */
+    .sim-section{padding:24px 32px 0}
+    .sim-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .sim-title-group{display:flex;align-items:center;gap:10px}
+    .chip-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:7px;background:rgba(255,150,0,.12);border:1px solid rgba(255,150,0,.25);color:#fbbf24;font-family:'JetBrains Mono',monospace}
+    .sim-frame{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#060d14}
+    .sim-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+    .sim-dots{display:flex;gap:6px}
+    .sim-dot{width:11px;height:11px;border-radius:50%}
+    .sim-url{font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.22)}
+    .sim-link{font-size:11px;color:rgba(255,255,255,.35);text-decoration:none;transition:color .15s}
+    .sim-link:hover{color:#38bdf8}
+    .sim-iframe{width:100%;height:580px;border:none;display:block}
+
+    footer{margin-top:40px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer p{font-size:11px;color:rgba(255,255,255,.2)}
+    footer a{color:#38bdf8;text-decoration:none}
+
+    @media(max-width:600px){
+      nav,.hero,.stats-section,.chart-section,.sim-section{padding-left:16px;padding-right:16px}
+      .conn-banner{margin-left:16px;margin-right:16px}
+      .hero{padding-top:16px}
+      .wc-temp{font-size:64px}
+      .wc-emoji{font-size:64px}
+      footer{padding:16px}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useRef} = React;
+
+const API = 'http://localhost:3000/api';
+const POLL_MS = 2000;
+
+const COND = {
+  HOT:    {emoji:'☀️',  wc:'wc-hot',    desc:'Suhu sangat panas — LED menyala', ledOn:true },
+  NORMAL: {emoji:'⛅',  wc:'wc-normal', desc:'Suhu nyaman — LED mati',           ledOn:false},
+  COLD:   {emoji:'❄️',  wc:'wc-cold',   desc:'Suhu sangat dingin — LED mati',    ledOn:false},
+};
+
+function getCond(t){ return t>30?'HOT':t<15?'COLD':'NORMAL' }
+
+function BgScene(){
+  const orbs=[
+    {w:500,h:500,bg:'#0c2a4a',x:'60%',y:'-10%',tx:'60px',ty:'40px',dur:'22s',del:'0s'},
+    {w:400,h:400,bg:'#1a0a2e',x:'-5%',y:'30%',tx:'-40px',ty:'-50px',dur:'18s',del:'3s'},
+    {w:300,h:300,bg:'#0a2a1a',x:'40%',y:'70%',tx:'30px',ty:'20px',dur:'25s',del:'6s'},
+  ];
+  const stars=Array.from({length:60},(_,i)=>({
+    id:i,size:Math.random()*2+.5,
+    x:Math.random()*100,y:Math.random()*100,
+    d:(Math.random()*4+2).toFixed(1)+'s',
+    delay:(Math.random()*6).toFixed(1)+'s',
+  }));
+  return (
+    <div className="bg-canvas">
+      {orbs.map((o,i)=>(
+        <div key={i} className="orb" style={{width:o.w,height:o.h,background:o.bg,left:o.x,top:o.y,'--tx':o.tx,'--ty':o.ty,'--dur':o.dur,'--del':o.del}}/>
+      ))}
+      {stars.map(s=>(
+        <div key={s.id} className="star2" style={{width:s.size+'px',height:s.size+'px',left:s.x+'%',top:s.y+'%','--d':s.d,'--delay':s.delay}}/>
+      ))}
+    </div>
+  );
+}
+
+function Clock(){
+  const [t,setT]=useState(new Date());
+  useEffect(()=>{const i=setInterval(()=>setT(new Date()),1000);return()=>clearInterval(i)},[]);
+  const p=n=>String(n).padStart(2,'0');
+  return <span>{p(t.getHours())}:{p(t.getMinutes())}:{p(t.getSeconds())}</span>;
+}
+
+function HistoryChart({history}){
+  const ref=useRef(null);
+  const chartRef=useRef(null);
+  useEffect(()=>{
+    if(!ref.current||!history.length) return;
+    const labels=history.map(h=>{
+      const d=new Date(h.created_at||Date.now());
+      return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0');
+    }).reverse();
+    const temps=history.map(h=>parseFloat(h.temperature)).reverse();
+    const hums =history.map(h=>parseFloat(h.humidity)).reverse();
+    if(chartRef.current) chartRef.current.destroy();
+    chartRef.current=new Chart(ref.current,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'Suhu (°C)',data:temps,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f97316',tension:.4,fill:true},
+          {label:'Kelembapan (%)',data:hums,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#38bdf8',tension:.4,fill:true},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'rgba(255,255,255,.6)',font:{size:11},boxWidth:12}}},
+        scales:{
+          x:{ticks:{color:'rgba(255,255,255,.3)',font:{size:9},maxTicksLimit:8},grid:{color:'rgba(255,255,255,.05)'}},
+          y:{ticks:{color:'rgba(255,255,255,.3)',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},
+        }
+      }
+    });
+    return()=>{if(chartRef.current)chartRef.current.destroy()};
+  },[history]);
+  return <div className="chart-wrap"><canvas ref={ref}/></div>;
+}
+
+function App(){
+  const [temp,setTemp]=useState(28.5);
+  const [hum,setHum]  =useState(68.4);
+  const [isLive,setIsLive]=useState(false);
+  const [lastUpdate,setLastUpdate]=useState(null);
+  const [history,setHistory]=useState([]);
+  const [stats,setStats]=useState(null);
+  const [error,setError]=useState(null);
+
+  // Fetch data dari backend
+  useEffect(()=>{
+    let alive=true;
+    const fetchData=async()=>{
+      try{
+        const [latRes,histRes,statRes]=await Promise.all([
+          fetch(API+'/latest', { headers: { 'x-api-key': 'weatheriot-uas-2024-evin' } }),
+          fetch(API+'/history?limit=20', { headers: { 'x-api-key': 'weatheriot-uas-2024-evin' } }),
+          fetch(API+'/stats', { headers: { 'x-api-key': 'weatheriot-uas-2024-evin' } }),
+        ]);
+        if(!latRes.ok) throw new Error('Backend tidak merespons');
+        const lat  = await latRes.json();
+        const hist = await histRes.json();
+        const stat = await statRes.json();
+        if(!alive) return;
+        if(lat && lat.temperature!==undefined){
+          setTemp(parseFloat(lat.temperature));
+          setHum(parseFloat(lat.humidity));
+          setLastUpdate(new Date().toLocaleTimeString('id-ID'));
+          setIsLive(true);
+          setError(null);
+        }
+        if(Array.isArray(hist)) setHistory(hist);
+        if(stat && stat.total_data) setStats(stat);
+      } catch(e){
+        if(!alive) return;
+        setIsLive(false);
+        setError('Backend offline — gunakan slider manual');
+      }
+    };
+    fetchData();
+    const interval=setInterval(fetchData, POLL_MS);
+    return()=>{alive=false;clearInterval(interval)};
+  },[]);
+
+  const cond = getCond(temp);
+  const c    = COND[cond];
+
+  const lcdL1=`T:${temp.toFixed(1)}C  H:${hum.toFixed(0)}%`;
+  const lcdL2=cond==='HOT'?'WEATHER: HOT   ':cond==='COLD'?'WEATHER: COLD  ':'WEATHER: NORMAL';
+
+  return(
+    <>
+      <BgScene/>
+      <div className="app">
+
+        <nav>
+          <div className="nav-brand">
+            <div className="nav-icon">🌦️</div>
+            <div>
+              <div className="nav-name">WeatherIoT</div>
+              <div className="nav-sub">UAS IoT · ESP32 + DHT22 + LCD I2C</div>
+            </div>
+          </div>
+          <div className="nav-right">
+            {isLive
+              ? <div className="badge badge-live"><div className="dot-live green"/>DATA LIVE</div>
+              : <div className="badge badge-manual"><div className="dot-live yellow"/>MODE MANUAL</div>
+            }
+            <a href="https://wokwi.com/projects/465145460461775873" target="_blank" rel="noreferrer" className="btn-wokwi">
+              🔗 Wokwi
+            </a>
+          </div>
+        </nav>
+
+        {/* Banner status koneksi */}
+        {isLive ? (
+          <div className="conn-banner banner-live">
+            <div className="banner-icon">✅</div>
+            <div className="banner-text">
+              <strong>Backend terhubung</strong> — data real-time dari ESP32 via MQTT
+              <span>Update terakhir: {lastUpdate}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="conn-banner banner-offline">
+            <div className="banner-icon">⚠️</div>
+            <div className="banner-text">
+              <strong>Backend offline</strong> — jalankan <code style={{background:'rgba(255,255,255,.1)',padding:'1px 6px',borderRadius:4}}>node server.js</code> di PowerShell
+              <span>Mode manual aktif — gunakan slider di bawah</span>
+            </div>
+          </div>
+        )}
+
+        {/* HERO */}
+        <div className="hero">
+          {/* Main card */}
+          <div className={`weather-card ${c.wc}`}>
+            <div className="wc-top">
+              <div className="wc-location">📍 Samarinda, Kalimantan Timur</div>
+              <div className="wc-time"><Clock/></div>
+            </div>
+            <div className="wc-main">
+              <div>
+                <div className="wc-temp">{temp.toFixed(1)}<sup>°C</sup></div>
+                <div className="wc-label">{cond}</div>
+                <div className="wc-desc">{c.desc}</div>
+                <div className="led-indicator">
+                  <div className={`led-bulb ${c.ledOn?'led-on':'led-off'}`}/>
+                  <span className="led-text">GPIO 18 — {c.ledOn?'HIGH / ON':'LOW / OFF'}</span>
+                </div>
+              </div>
+              <div className="wc-emoji">{c.emoji}</div>
+            </div>
+            <div className="wc-footer">
+              <div className="wc-stat">
+                <div className="wc-stat-lbl">Kelembapan</div>
+                <div className="wc-stat-val">{hum.toFixed(1)}%</div>
+                <div className="wc-stat-sub">DHT22</div>
+              </div>
+              <div className="wc-stat">
+                <div className="wc-stat-lbl">Sensor</div>
+                <div className="wc-stat-val" style={{fontSize:14,marginTop:4}}>DHT22</div>
+                <div className="wc-stat-sub">GPIO 15</div>
+              </div>
+              <div className="wc-stat">
+                <div className="wc-stat-lbl">Display</div>
+                <div className="wc-stat-val" style={{fontSize:14,marginTop:4}}>LCD</div>
+                <div className="wc-stat-sub">I2C 0x27</div>
+              </div>
+              <div className="wc-stat">
+                <div className="wc-stat-lbl">Sumber</div>
+                <div className="wc-stat-val" style={{fontSize:14,marginTop:4,color:isLive?'#4ade80':'#fbbf24'}}>{isLive?'LIVE':'Manual'}</div>
+                <div className="wc-stat-sub">{isLive?'MQTT':'Slider'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right panel */}
+          <div className="right-col">
+            <div className="panel-card">
+              <div className="panel-title">
+                {isLive ? '📡 Data Real-time dari ESP32' : '⚙️ Mode Manual — Atur Nilai Sensor'}
+              </div>
+              {!isLive && (
+                <>
+                  <div className="input-row">
+                    <div className="input-lbl">
+                      <span className="input-lbl-text">🌡️ Suhu</span>
+                      <span className="input-lbl-val">{temp.toFixed(1)}°C</span>
+                    </div>
+                    <input type="range" className="temp-slider" min="-5" max="50" step="0.5" value={temp}
+                      onChange={e=>setTemp(parseFloat(e.target.value))}/>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-lbl">
+                      <span className="input-lbl-text">💧 Kelembapan</span>
+                      <span className="input-lbl-val">{hum.toFixed(1)}%</span>
+                    </div>
+                    <input type="range" className="hum-slider" min="0" max="100" step="0.5" value={hum}
+                      onChange={e=>setHum(parseFloat(e.target.value))}/>
+                  </div>
+                  <div className="manual-note">Jalankan backend + Wokwi untuk data otomatis</div>
+                </>
+              )}
+              {isLive && (
+                <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                  {[
+                    {icon:'🌡️',lbl:'Suhu',val:temp.toFixed(1)+'°C',sub:'DHT22 · GPIO 15'},
+                    {icon:'💧',lbl:'Kelembapan',val:hum.toFixed(1)+'%',sub:'DHT22 · GPIO 15'},
+                    {icon:'📡',lbl:'Status',val:'TERHUBUNG',sub:'MQTT via HiveMQ',color:'#4ade80'},
+                  ].map((item,i)=>(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'rgba(255,255,255,.04)',borderRadius:12}}>
+                      <span style={{fontSize:20}}>{item.icon}</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:10,color:'rgba(255,255,255,.35)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>{item.lbl}</div>
+                        <div style={{fontSize:18,fontWeight:800,color:item.color||'#fff'}}>{item.val}</div>
+                        <div style={{fontSize:10,color:'rgba(255,255,255,.25)',fontFamily:'JetBrains Mono,monospace'}}>{item.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* LCD */}
+            <div className="panel-card">
+              <div className="panel-title">📟 LCD Display — I2C 0x27</div>
+              <div className="lcd-screen">
+                <div className="lcd-line">{lcdL1}</div>
+                <div className="lcd-line">{lcdL2}<span className="lcd-cursor"/></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* STAT CARDS */}
+        <div className="stats-section">
+          <div className="sec-title">Output Sistem</div>
+          <div className="stats-grid">
+            <div className="scard">
+              <div className="scard-icon">🌡️</div>
+              <div className="scard-lbl">Suhu</div>
+              <div className="scard-val">{temp.toFixed(1)}<span className="scard-unit"> °C</span></div>
+              <div className="scard-sub">DHT22 · GPIO 15</div>
+            </div>
+            <div className="scard">
+              <div className="scard-icon">💧</div>
+              <div className="scard-lbl">Kelembapan</div>
+              <div className="scard-val">{hum.toFixed(1)}<span className="scard-unit"> %</span></div>
+              <div className="scard-sub">DHT22 · GPIO 15</div>
+            </div>
+            <div className="scard">
+              <div className="scard-icon">{c.ledOn?'🔴':'⚫'}</div>
+              <div className="scard-lbl">LED Indikator</div>
+              <div className="scard-val" style={{fontSize:16,color:c.ledOn?'#f87171':'rgba(255,255,255,.3)',marginTop:4}}>
+                {c.ledOn?'MENYALA':'MATI'}
+              </div>
+              <div className="scard-sub">GPIO 18 · {c.ledOn?'HIGH':'LOW'}</div>
+            </div>
+            <div className="scard">
+              <div className="scard-icon">🌤️</div>
+              <div className="scard-lbl">Kondisi</div>
+              <div className="scard-val" style={{fontSize:16,marginTop:4}}>{cond}</div>
+              <div className="scard-sub">{cond==='HOT'?'temp > 30°C':cond==='COLD'?'temp < 15°C':'15 – 30°C'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CHART & STATS */}
+        <div className="chart-section">
+          <div className="chart-card">
+            <div className="chart-header">
+              <div>
+                <div className="chart-title">📈 Grafik Riwayat Sensor</div>
+              </div>
+              <div className="chart-sub">
+                {history.length>0 ? history.length+' data terakhir' : 'Menunggu data...'}
+              </div>
+            </div>
+            {history.length>0
+              ? <HistoryChart history={history}/>
+              : <div style={{height:200,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,.2)',fontSize:13,fontFamily:'JetBrains Mono,monospace'}}>
+                  Jalankan Wokwi + backend untuk melihat grafik
+                </div>
+            }
+            {stats && stats.total_data && (
+              <div className="summary-grid">
+                <div className="summary-item">
+                  <div className="summary-lbl">Total Data</div>
+                  <div className="summary-val">{stats.total_data}</div>
+                  <div className="summary-sub">pembacaan</div>
+                </div>
+                <div className="summary-item">
+                  <div className="summary-lbl">Rata-rata Suhu</div>
+                  <div className="summary-val">{stats.avg_temp}°</div>
+                  <div className="summary-sub">min {stats.min_temp}° / max {stats.max_temp}°</div>
+                </div>
+                <div className="summary-item">
+                  <div className="summary-lbl">Rata-rata Hum</div>
+                  <div className="summary-val">{stats.avg_hum}%</div>
+                  <div className="summary-sub">min {stats.min_hum}% / max {stats.max_hum}%</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* WOKWI */}
+        <div className="sim-section">
+          <div className="sim-header">
+            <div className="sim-title-group">
+              <div className="sec-title" style={{margin:0}}>Simulator Wokwi</div>
+              <span className="chip-badge">ESP32</span>
+            </div>
+            <a href="https://wokwi.com/projects/465145460461775873" target="_blank" rel="noreferrer" className="sim-link">
+              Buka di tab baru ↗
+            </a>
+          </div>
+          <div className="sim-frame">
+            <div className="sim-bar">
+              <div className="sim-dots">
+                <div className="sim-dot" style={{background:'rgba(255,95,87,.6)'}}/>
+                <div className="sim-dot" style={{background:'rgba(255,189,46,.6)'}}/>
+                <div className="sim-dot" style={{background:'rgba(39,201,63,.6)'}}/>
+              </div>
+              <span className="sim-url">wokwi.com/projects/465145460461775873</span>
+              <a href="https://wokwi.com/projects/465145460461775873" target="_blank" rel="noreferrer" className="sim-link">↗</a>
+            </div>
+            <iframe src="https://wokwi.com/projects/465145460461775873" className="sim-iframe"
+              title="UAS-IOT Weather System" allow="cross-origin-isolated" loading="lazy"/>
+          </div>
+        </div>
+
+        <footer>
+          <p>WeatherIoT · UAS Internet of Things · ESP32 + DHT22 + LCD I2C</p>
+          <p>Simulator oleh <a href="https://wokwi.com" target="_blank" rel="noreferrer">wokwi.com</a> · React · Node.js · HiveMQ</p>
+        </footer>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+{
+  "records": [
+    {
+      "id": 1780105806403,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.50.06"
+    },
+    {
+      "id": 1780105808541,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.50.08"
+    },
+    {
+      "id": 1780105815999,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.50.15"
+    },
+    {
+      "id": 1780105818219,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.50.18"
+    },
+    {
+      "id": 1780106231571,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.57.11"
+    },
+    {
+      "id": 1780106233835,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "30/5/2026, 09.57.13"
+    },
+    {
+      "id": 1780106236053,
+      "temperature": 8.7,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "30/5/2026, 09.57.16"
+    },
+    {
+      "id": 1780214449894,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.00.49"
+    },
+    {
+      "id": 1780214454689,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.00.54"
+    },
+    {
+      "id": 1780214462978,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.01.02"
+    },
+    {
+      "id": 1780214465234,
+      "temperature": 46.9,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.01.05"
+    },
+    {
+      "id": 1780214477219,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.17"
+    },
+    {
+      "id": 1780214479468,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.19"
+    },
+    {
+      "id": 1780214481719,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.21"
+    },
+    {
+      "id": 1780214496452,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.36"
+    },
+    {
+      "id": 1780214498734,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.38"
+    },
+    {
+      "id": 1780214512951,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.52"
+    },
+    {
+      "id": 1780214515195,
+      "temperature": -3.2,
+      "humidity": 32.5,
+      "condition": "COLD",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.01.55"
+    },
+    {
+      "id": 1780214517456,
+      "temperature": 32.4,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.01.57"
+    },
+    {
+      "id": 1780214522308,
+      "temperature": 29.9,
+      "humidity": 32.5,
+      "condition": "NORMAL",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.02.02"
+    },
+    {
+      "id": 1780214530973,
+      "temperature": 29.9,
+      "humidity": 32.5,
+      "condition": "NORMAL",
+      "led": "OFF",
+      "created_at": "31/5/2026, 16.02.10"
+    },
+    {
+      "id": 1780214533145,
+      "temperature": 34.1,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.02.13"
+    },
+    {
+      "id": 1780214543022,
+      "temperature": 32.4,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.02.23"
+    },
+    {
+      "id": 1780214545826,
+      "temperature": 32.4,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.02.25"
+    },
+    {
+      "id": 1780214592986,
+      "temperature": 36.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.12"
+    },
+    {
+      "id": 1780214605030,
+      "temperature": 36.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.25"
+    },
+    {
+      "id": 1780214607369,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.27"
+    },
+    {
+      "id": 1780214609563,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.29"
+    },
+    {
+      "id": 1780214611749,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.31"
+    },
+    {
+      "id": 1780214613936,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.33"
+    },
+    {
+      "id": 1780214617706,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.37"
+    },
+    {
+      "id": 1780214619964,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.39"
+    },
+    {
+      "id": 1780214622134,
+      "temperature": 30.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.42"
+    },
+    {
+      "id": 1780214624363,
+      "temperature": 36.7,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.44"
+    },
+    {
+      "id": 1780214626615,
+      "temperature": 35,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.46"
+    },
+    {
+      "id": 1780214628880,
+      "temperature": 34.1,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.48"
+    },
+    {
+      "id": 1780214631018,
+      "temperature": 34.1,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.51"
+    },
+    {
+      "id": 1780214633181,
+      "temperature": 34.1,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.53"
+    },
+    {
+      "id": 1780214635429,
+      "temperature": 34.1,
+      "humidity": 32.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.55"
+    },
+    {
+      "id": 1780214637675,
+      "temperature": 34.1,
+      "humidity": 39.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.03.57"
+    },
+    {
+      "id": 1780214646141,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.06"
+    },
+    {
+      "id": 1780214648388,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.08"
+    },
+    {
+      "id": 1780214654783,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.14"
+    },
+    {
+      "id": 1780214656979,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.16"
+    },
+    {
+      "id": 1780214659285,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.19"
+    },
+    {
+      "id": 1780214662780,
+      "temperature": 34.1,
+      "humidity": 40.5,
+      "condition": "HOT",
+      "led": "ON",
+      "created_at": "31/5/2026, 16.04.22"
+    }
+  ]
+}
