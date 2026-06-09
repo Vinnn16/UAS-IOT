@@ -10,21 +10,21 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// ── API Key Security ──────────────────────────────
+// ── API Key ───────────────────────────────────────
 const API_KEY = 'weatheriot-uas-2024-evin';
 
 function checkApiKey(req, res, next) {
   const key = req.headers['x-api-key'] || req.query.api_key;
   if (!key || key !== API_KEY) {
     return res.status(401).json({
-      error:   'Unauthorized',
-      message: 'API Key tidak valid. Sertakan header x-api-key atau query ?api_key='
+      error: 'Unauthorized',
+      message: 'API Key tidak valid. Sertakan header x-api-key.'
     });
   }
   next();
 }
 
-// ── Telegram Config ───────────────────────────────
+// ── Telegram ──────────────────────────────────────
 const TG_TOKEN   = '8891049640:AAHjc-60sRE4HNcuenNCG4tjhmQY9-dvYvI';
 const TG_CHAT_ID = '6853837025';
 let lastAlertTime = 0;
@@ -34,31 +34,33 @@ function sendTelegram(message) {
   const url  = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${text}&parse_mode=HTML`;
   https.get(url, (res) => {
     let data = '';
-    res.on('data', chunk => data += chunk);
+    res.on('data', c => data += c);
     res.on('end', () => {
-      const result = JSON.parse(data);
-      if (result.ok) console.log('[TELEGRAM] Notifikasi terkirim!');
-      else           console.error('[TELEGRAM] Gagal:', result.description);
+      const r = JSON.parse(data);
+      if (r.ok) console.log('[TELEGRAM] Terkirim!');
+      else      console.error('[TELEGRAM] Gagal:', r.description);
     });
-  }).on('error', err => console.error('[TELEGRAM] Error:', err.message));
+  }).on('error', e => console.error('[TELEGRAM] Error:', e.message));
 }
 
-// ── MQTT Config ───────────────────────────────────
+// ── MQTT ──────────────────────────────────────────
 const MQTT_URL  = 'mqtts://4e9915438f754b09bd2050dd64722cda.s1.eu.hivemq.cloud:8883';
 const MQTT_OPTS = {
-  username:           'evin123',
-  password:           'Espevin123',
+  username:           'evin',
+  password:           'espevin123',
   clientId:           'nodejs-backend-' + Math.random().toString(16).slice(2),
   rejectUnauthorized: false,
 };
+
+const TOPIC_DATA    = 'iot/uasiot/weather';
+const TOPIC_CONTROL = 'iot/uasiot/control';
 
 const mqttClient = mqtt.connect(MQTT_URL, MQTT_OPTS);
 
 mqttClient.on('connect', () => {
   console.log('[MQTT] Terhubung ke HiveMQ!');
-  mqttClient.subscribe('iot/uasiot/weather', (err) => {
-    if (!err) console.log('[MQTT] Subscribe: iot/uasiot/weather');
-    else      console.error('[MQTT] Gagal subscribe:', err);
+  mqttClient.subscribe(TOPIC_DATA, err => {
+    if (!err) console.log('[MQTT] Subscribe:', TOPIC_DATA);
   });
   sendTelegram(
     '🟢 <b>WeatherIoT Backend Online</b>\n' +
@@ -74,58 +76,54 @@ mqttClient.on('message', (topic, message) => {
     const temp = parseFloat(data.temperature);
     const hum  = parseFloat(data.humidity);
     console.log('[DATA]', data);
-
     db.insert(data.temperature, data.humidity, data.condition, data.led);
 
     const now = Date.now();
-
     if (temp > 30 && (now - lastAlertTime) > 60000) {
       lastAlertTime = now;
       sendTelegram(
         '🔴 <b>ALERT: Suhu Terlalu Panas!</b>\n\n' +
         '🌡️ Suhu     : <b>' + temp.toFixed(1) + '°C</b>\n' +
         '💧 Humidity : ' + hum.toFixed(1) + '%\n' +
-        '💡 LED      : ON (GPIO 18)\n' +
+        '💡 LED      : ' + data.led + ' (GPIO 18)\n' +
         '📟 LCD      : WEATHER: HOT\n\n' +
         '⚠️ Suhu melebihi batas normal (>30°C)\n' +
         '🕐 ' + new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })
       );
     }
-
     if (temp < 15 && (now - lastAlertTime) > 60000) {
       lastAlertTime = now;
       sendTelegram(
         '🔵 <b>ALERT: Suhu Terlalu Dingin!</b>\n\n' +
         '🌡️ Suhu     : <b>' + temp.toFixed(1) + '°C</b>\n' +
         '💧 Humidity : ' + hum.toFixed(1) + '%\n' +
-        '💡 LED      : OFF (GPIO 18)\n' +
+        '💡 LED      : ' + data.led + ' (GPIO 18)\n' +
         '📟 LCD      : WEATHER: COLD\n\n' +
         '⚠️ Suhu di bawah batas normal (<15°C)\n' +
         '🕐 ' + new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })
       );
     }
-
   } catch (e) {
-    console.error('[ERROR] Parse gagal:', e.message);
+    console.error('[ERROR]', e.message);
   }
 });
 
-mqttClient.on('error', (err) => {
-  console.error('[MQTT] Error:', err.message);
-});
+mqttClient.on('error', err => console.error('[MQTT] Error:', err.message));
 
-// ── Public route (tanpa API key) ──────────────────
-app.get('/', (req, res) => {
-  res.json({
-    name:    'WeatherIoT Backend',
-    version: '1.0.0',
-    author:  'Evin — UAS IoT',
-    status:  'running',
-    note:    'Semua endpoint /api/* membutuhkan header x-api-key',
+// ── Fungsi publish kontrol ke ESP32 ──────────────
+function publishControl(command) {
+  const payload = JSON.stringify({ led: command });
+  mqttClient.publish(TOPIC_CONTROL, payload, { qos: 0 }, (err) => {
+    if (err) console.error('[CTRL] Gagal publish:', err.message);
+    else     console.log('[CTRL] Perintah dikirim:', payload);
   });
+}
+
+// ── REST API ──────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({ name: 'WeatherIoT Backend', version: '1.0.0', status: 'running' });
 });
 
-// ── Protected API routes ──────────────────────────
 app.get('/api/latest', checkApiKey, (req, res) => {
   const row = db.getLatest();
   if (!row) return res.json({ message: 'Belum ada data' });
@@ -141,6 +139,27 @@ app.get('/api/stats', checkApiKey, (req, res) => {
   res.json(db.getStats());
 });
 
+// POST /api/control — kontrol LED dari dashboard
+app.post('/api/control', checkApiKey, (req, res) => {
+  const { command } = req.body;
+  const validCmds = ['ON', 'OFF', 'AUTO'];
+  if (!command || !validCmds.includes(command.toUpperCase())) {
+    return res.status(400).json({
+      error: 'Bad Request',
+      message: 'Command harus salah satu dari: ON, OFF, AUTO'
+    });
+  }
+  const cmd = command.toUpperCase();
+  publishControl(cmd);
+
+  const desc = cmd === 'ON' ? 'LED dinyalakan manual' :
+               cmd === 'OFF' ? 'LED dimatikan manual' :
+               'LED kembali ke mode otomatis';
+
+  console.log('[API] Kontrol LED:', cmd);
+  res.json({ success: true, command: cmd, message: desc });
+});
+
 app.get('/api/test-telegram', checkApiKey, (req, res) => {
   sendTelegram(
     '🧪 <b>Test Notifikasi WeatherIoT</b>\n' +
@@ -148,22 +167,20 @@ app.get('/api/test-telegram', checkApiKey, (req, res) => {
     '🔐 API Key valid\n' +
     '🕐 ' + new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })
   );
-  res.json({ message: 'Notifikasi test dikirim ke Telegram!' });
+  res.json({ message: 'Notifikasi test dikirim!' });
 });
 
-// ── Start Server ──────────────────────────────────
+// ── Start ─────────────────────────────────────────
 app.listen(PORT, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════╗');
   console.log('║     Weather IoT Backend — Running             ║');
   console.log('╠══════════════════════════════════════════════╣');
-  console.log('║  API Key : weatheriot-uas-2024-evin           ║');
-  console.log('║  Header  : x-api-key: weatheriot-uas-2024-evin║');
-  console.log('╠══════════════════════════════════════════════╣');
-  console.log('║  GET /api/latest        (protected)           ║');
-  console.log('║  GET /api/history       (protected)           ║');
-  console.log('║  GET /api/stats         (protected)           ║');
-  console.log('║  GET /api/test-telegram (protected)           ║');
+  console.log('║  GET  /api/latest        (protected)          ║');
+  console.log('║  GET  /api/history       (protected)          ║');
+  console.log('║  GET  /api/stats         (protected)          ║');
+  console.log('║  POST /api/control       (protected)          ║');
+  console.log('║  GET  /api/test-telegram (protected)          ║');
   console.log('╚══════════════════════════════════════════════╝');
   console.log('');
 });

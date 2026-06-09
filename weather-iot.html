@@ -134,6 +134,24 @@
     .summary-sub{font-size:10px;color:rgba(255,255,255,.25);margin-top:1px}
 
     /* WOKWI */
+    
+    /* CONTROL PANEL */
+    .ctrl-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:22px}
+    .ctrl-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:14px}
+    .ctrl-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+    .ctrl-btn{padding:12px 0;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .2s;font-family:'Inter',sans-serif;letter-spacing:.02em}
+    .ctrl-btn-on{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3);color:#f87171}
+    .ctrl-btn-on:hover{background:rgba(248,113,113,.28);border-color:#f87171}
+    .ctrl-btn-on.active{background:#f87171;color:#fff;box-shadow:0 0 16px rgba(248,113,113,.5)}
+    .ctrl-btn-off{background:rgba(100,116,139,.15);border-color:rgba(100,116,139,.3);color:#94a3b8}
+    .ctrl-btn-off:hover{background:rgba(100,116,139,.25);border-color:#94a3b8}
+    .ctrl-btn-off.active{background:#475569;color:#fff}
+    .ctrl-btn-auto{grid-column:span 2;background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:#38bdf8}
+    .ctrl-btn-auto:hover{background:rgba(56,189,248,.2)}
+    .ctrl-btn-auto.active{background:rgba(56,189,248,.25);border-color:#38bdf8}
+    .ctrl-status{font-size:11px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace;text-align:center;margin-top:6px}
+    .ctrl-status span{color:rgba(255,255,255,.6);font-weight:600}
+
     .sim-section{padding:24px 32px 0}
     .sim-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
     .sim-title-group{display:flex;align-items:center;gap:10px}
@@ -251,6 +269,28 @@ function App(){
   const [history,setHistory]=useState([]);
   const [stats,setStats]=useState(null);
   const [error,setError]=useState(null);
+  const [ledMode, setLedMode]   = useState('AUTO');
+  const [ledCtrlStatus, setLedCtrlStatus] = useState('');
+
+  const controlLed = async (command) => {
+    try {
+      const res = await fetch(API+'/control', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'x-api-key': 'weatheriot-uas-2024-evin' },
+        body: JSON.stringify({ command })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLedMode(command);
+        setLedCtrlStatus(data.message);
+        setTimeout(() => setLedCtrlStatus(''), 3000);
+      }
+    } catch(e) {
+      setLedCtrlStatus('Backend offline — kontrol tidak tersedia');
+      setTimeout(() => setLedCtrlStatus(''), 3000);
+    }
+  };
+
 
   // Fetch data dari backend
   useEffect(()=>{
@@ -425,6 +465,30 @@ function App(){
                   ))}
                 </div>
               )}
+            </div>
+
+
+            {/* Control Panel */}
+            <div className="ctrl-panel">
+              <div className="ctrl-title">🎮 Kontrol Aktuator — LED GPIO 18</div>
+              <div className="ctrl-buttons">
+                <button
+                  className={`ctrl-btn ctrl-btn-on ${ledMode==='ON'?'active':''}`}
+                  onClick={()=>controlLed('ON')}
+                >🔴 LED ON</button>
+                <button
+                  className={`ctrl-btn ctrl-btn-off ${ledMode==='OFF'?'active':''}`}
+                  onClick={()=>controlLed('OFF')}
+                >⚫ LED OFF</button>
+                <button
+                  className={`ctrl-btn ctrl-btn-auto ${ledMode==='AUTO'?'active':''}`}
+                  onClick={()=>controlLed('AUTO')}
+                >⚙️ Mode Otomatis</button>
+              </div>
+              <div className="ctrl-status">
+                Mode: <span>{ledMode}</span>
+                {ledCtrlStatus && <span style={{marginLeft:8,color:'#4ade80'}}> — {ledCtrlStatus}</span>}
+              </div>
             </div>
 
             {/* LCD */}
