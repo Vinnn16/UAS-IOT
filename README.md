@@ -20,29 +20,6 @@ Sistem **Weather Monitoring System** berbasis IoT yang memantau suhu dan kelemba
 
 ---
 
-## Arsitektur Sistem
-
-```
-[ESP32 + DHT22]
-      |
-      | WiFi + MQTT (TLS port 8883)
-      ↓
-[HiveMQ Cloud Broker]
-      |
-      | Subscribe MQTT
-      ↓
-[Node.js Backend]
-      |
-      ├──→ [Database (lowdb/JSON)]
-      ├──→ [REST API]
-      └──→ [Telegram Bot Alert]
-                |
-                ↓
-      [Dashboard Web (React.js)]
-```
-
----
-
 ## Komponen & Teknologi
 
 ### Hardware (Wokwi Simulator)
