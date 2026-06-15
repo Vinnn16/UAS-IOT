@@ -9,7 +9,6 @@
 
 > Final Project Mata Kuliah Internet of Things (IoT)  
 > Program Studi Teknik Informatika — Universitas Palangka Raya  
-> Semester Genap 2025/2026
 
 ---
 
