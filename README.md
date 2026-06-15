@@ -1,4 +1,6 @@
-# Weather Monitoring System — UAS Internet of Things
+# WEATHER MONITORING SYSTEM
+BERBASIS ESP32, MQTT, NODE JS, dan TELEGRAM BOT
+
 
 ![IoT](https://img.shields.io/badge/IoT-ESP32-orange)
 ![MQTT](https://img.shields.io/badge/Protocol-MQTT-blue)
