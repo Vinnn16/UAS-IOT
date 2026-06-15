@@ -201,24 +201,10 @@ Data dikirim dalam format JSON setiap 2 detik:
 
 | | |
 |---|---|
-| **Nama** | Evin |
+| **Nama** | Elgi Juldrievin |
 | **Program Studi** | Teknik Informatika |
 | **Universitas** | Universitas Palangka Raya |
 | **Mata Kuliah** | Internet of Things (IoT) |
-| **Tahun** | 2025/2026 |
-| **Simulator** | [Wokwi Project](https://wokwi.com/projects/465145460461775873) |
+| **Simulator** | [Wokwi Project]([https://wokwi.com/projects/465145460461775873](https://wokwi.com/projects/465145460461775873)) |
 
 ---
-
-## Referensi
-
-- [ESP32 Technical Reference Manual — Espressif](https://docs.espressif.com)
-- [HiveMQ Cloud Documentation](https://docs.hivemq.com)
-- [MQTT v5.0 Specification — OASIS](https://docs.oasis-open.org/mqtt)
-- [PubSubClient Library — knolleary](https://github.com/knolleary/pubsubclient)
-- [ArduinoJson Documentation](https://arduinojson.org)
-- [Wokwi Simulator Docs](https://docs.wokwi.com)
-- [Node.js Documentation](https://nodejs.org/docs)
-- [Express.js Guide](https://expressjs.com/guide)
-- [Telegram Bot API](https://core.telegram.org/bots/api)
-- [DHTesp Library](https://github.com/beegee-tokyo/DHTesp)
